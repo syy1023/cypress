@@ -2,21 +2,32 @@
 
 describe("注册页面的用例，UI" ,() => {
 
-//xxxxx注册和登录页面的Demo，暂时没分cases，所以部分步骤间都有依赖
+
+  function regis_mailbox() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < 10; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text+"@qq.com";
+  }
+
+//xxxx注册和登录页面的Demo，暂时没分cases，所以部分步骤间都有依赖
 //局限性是以下的project_name，regis_mailbox参数成功创建后下一次需要更改否则会报错
 
-  var url_home='https://qa.xxxxxx.com/zh-CN/'
-  var url_login='https://qa.xxxxxx.com/zh-CN/auth/login'
-  var url_regis='https://qa.xxxxxx.com/zh-CN/auth/register'
+  var url_home='https://qa.xxxx.hello-xxx.com/zh-CN/'
+  var url_login='https://qa.xxxx.hello-xxx.com/zh-CN/auth/login'
+  var url_regis='https://qa.xxxx.hello-xxx.com/zh-CN/auth/register'
 
 
   var project_name='cypresstest17'
   var project_tag='cypresstest17'
 
-  var username='y1204xxxxx3.com'
+  var username='y1204140217@163.com'
   var password='1234ABcd..'
 
-  var regis_mailbox='xxxxxq.com'
+ // var regis_mailbox='test28@qq.com'
   var regis_password='1234ABcd..'
   var regis_password_notmatch='12345ABcd..'
 
@@ -30,7 +41,10 @@ describe("注册页面的用例，UI" ,() => {
 
     cy.visit(url_home)
 
-    cy.title().should('contain','xxxxx')
+    cy.title().should('contain','xxxx')
+
+
+
 
     cy.get('.header-button').eq(1)
       .should('contain',' 注册 ')
@@ -48,7 +62,7 @@ describe("注册页面的用例，UI" ,() => {
       .get('input[maxlength="18"]')
 
       .get('.form-control').eq(1).should('have.attr',"placeholder",'邮箱')
-      .get('.form-control').eq(1).type(regis_mailbox)
+      .get('.form-control').eq(1).type(regis_mailbox())
 
       .get('.form-control').eq(2).should('have.attr',"placeholder",'密码')
       .get('.form-control').eq(2).type(regis_password)
@@ -57,14 +71,14 @@ describe("注册页面的用例，UI" ,() => {
       .get('.form-control').eq(3).should('have.attr',"placeholder",'请输入确认密码')
       .get('.form-control').eq(3).type(regis_password)
 
-     //不勾选协议直接提交注册,这里有个小缺陷，没法捕捉什么都没填的提示
+     //不勾选协议直接提交注册,这里有个小缺陷，没法捕捉没勾选协议的提示
     cy.get('input').get('.btn-block').click()
      // .should('be.disabled')
 
     //提交后再次注册，check提交后的提示。这里有个小缺陷就是如果是已经注册过的账号过失败
     cy.get('input').get('.agreement-checkbox').check()
     cy.get('input').get('.btn-block').click()
-    .trigger('.confirm-info-dialog-content',{force: true}).get('.content-header').should('contain','验证邮件已发送！')
+    .trigger('.confirm-info-dialog-content',{force: true}).get('.content-header').should('contain','该邮箱已注册，请在7天内前往激活')
 
 
      })
@@ -92,9 +106,19 @@ describe("注册页面的用例，UI" ,() => {
     cy.get('input').get('.form-control').clear()
       .get('.form-control').eq(0).type('test')
       .get('input[maxlength="18"]')
-      .get('.form-control').eq(1).type(regis_mailbox)
+      .get('.form-control').eq(1).type(regis_mailbox())
       .get('.form-control').eq(2).type(regis_password)
       .get('.form-control').eq(3).type(regis_password)
+
+
+    cy.get('input').get('.agreement-checkbox').check()
+    cy.get('input').get('.btn-block').click()
+    .trigger('.confirm-info-dialog-content',{force: true}).get('.content-header').should('contain','该邮箱已注册，请在7天内前往激活')
+
+
+
+
+
      })
 
   it("注册，过两次密码不一致的场景UI",() => {
@@ -119,7 +143,7 @@ describe("注册页面的用例，UI" ,() => {
     cy.get('input')
       .get('.form-control').eq(1).clear()
       //已经注册的邮箱可以换成任何一个已经注册过的
-      .get('.form-control').eq(1).type('yuanyuan.shao@txxxxxs.com')
+      .get('.form-control').eq(1).type('xxx@tworks.com')
     cy.get('.form-group').get('.invalid-feedback').should('contain','该邮箱已注册')
 
 
@@ -139,7 +163,6 @@ describe("注册页面的用例，UI" ,() => {
 
   it("注册，check已有账号立即登录跳转UI",() => {
 
-
    //check已有账号立即登录
 
     cy.get('.card-form .register-extra')
@@ -148,25 +171,57 @@ describe("注册页面的用例，UI" ,() => {
       .should('contain','立即登录').click()
 
 
+     })
+  it("注册，用户协议和隐私声明UI",() => {
 
+
+
+    cy.get('.form-btn-group').get('.agreement').find('a')
+      .first().should('have.attr','href','https://qa.hello-xxx.com/auth/agreement')
+      .click()
+
+        .then(($a) => {
+          // 从<a>中取出完全限定的href
+          const url = $a.prop('href')
+
+          // 向它发起cy.request
+          cy.request(url)
+            .its('body')
+            .title('Helloxxx')
+
+        })
+
+        cy.get('.form-btn-group').get('.agreement').find('a')
+          .last().should('have.attr','href','https://qa.hello-xxx.com/auth/privacy')
+          .click()
+         .then(($a) => {
+          // 从<a>中取出完全限定的href
+          const url = $a.prop('href')
+
+          // 向它发起cy.request
+          cy.request(url)
+            .its('body')
+            .title('Helloxxx')
+
+        })
      })
 
 
 describe("登录认证，接口" ,() => {
 
-  var url_api_token='https://qa.xxxxxx.com/api/tokens'
+  var url_api_token='https://qa.xxxx.hello-xxx.com/api/tokens'
 
-  var not_verified_account='xxxxxq.com'
+  var not_verified_account='test25@qq.com'
   var not_verified_account_password="1234ABcd.."
 
-  var invalid_account='tesxxxxxq.com'
+  var invalid_account='testwahaha@qq.com'
   var invalid_account_password="1234ABcd.."
 
 
-  var invalid_password_account='yuanyuan.shao@txxxxxs.com'
+  var invalid_password_account='xxx@xxx.com'
   var invalid_password="1234"
 
-  var valid_password_account='266xxxxxq.com'
+  var valid_password_account='2665572581@qq.com'
   var valid_password="1234ABcd.."
 
 
@@ -247,6 +302,49 @@ describe("登录认证，接口" ,() => {
     }).should((response)=>{
       expect(response.status).eq(200)
 
+    })
+
+  })
+
+
+  for(let n = 0; n < 10; n ++){
+
+   it("账号重复10次输入错误",() => {
+
+    cy.request({
+      method: 'POST',
+      url: url_api_token,
+      failOnStatusCode: false,
+      body:
+        {"email":'anryan2020@sina.com',"password": invalid_password},
+      headers:
+        {
+          'content-type': 'application/json'
+
+        }
+    }).should((response)=>{
+      expect(response.body).to.have.property('message','invalid_credential')
+    })
+    cy.log('第 $n 次输错密码')
+  })
+
+  }
+
+  it("登录接口认证，安全-check十次密码不对后的返回",() => {
+
+    cy.request({
+      method: 'POST',
+      url: url_api_token,
+      failOnStatusCode: false,
+      body:
+        {"email":'anryan2020@sina.com',"password": invalid_password},
+      headers:
+        {
+          'content-type': 'application/json'
+
+        }
+    }).should((response)=>{
+      expect(response.body).to.have.property('message','account_locked')
     })
 
   })
@@ -342,14 +440,7 @@ describe("登录认证，接口" ,() => {
 
 
 
-
-
-
-
-
 })
-
-
 
 
 
@@ -360,9 +451,9 @@ describe("登录页面UI" ,() => {
   var project_name='cypresstest9'
   var project_tag='cypresstest9'
 
-  var url_home='https://qa.xxxxxx.com/zh-CN/'
-  var url_login='https://qa.xxxxxx.com/zh-CN/auth/login'
-  var url_regis='https://qa.xxxxxx.com/zh-CN/auth/register'
+  var url_home='https://qa.xxxx.hello-xxx.com/zh-CN/'
+  var url_login='https://qa.xxxx.hello-xxx.com/zh-CN/auth/login'
+  var url_regis='https://qa.xxxx.hello-xxx.com/zh-CN/auth/register'
 
 
 
@@ -374,10 +465,10 @@ describe("登录页面UI" ,() => {
     it("登录首页banner，登录UI",() => {
 
 
-    cy.get('.banner-info').should('contain','抗击疫情 共克时艰，xxxxx 助力远程协作，让产品设计不间断！ ')
+    cy.get('.banner-info').should('contain','抗击疫情 共克时艰，xxxx 助力远程协作，让产品设计不间断！ ')
     cy.contains('登录').click()
     cy.get('.form-group').eq(0)
-                         .type('y1204xxxxx3.com')
+                         .type('y1204140217@163.com')
     cy.get('.has-suffix-icon')
                          .type("1234ABcd..")
     cy.get('.btn-lg').click()
@@ -394,7 +485,7 @@ describe("登录页面UI" ,() => {
       .get('.form-control').eq(0).type('test')
       .get('.invalid-feedback').eq(0).should('contain','请输入格式正确的邮箱地址')
       //可以使用任意已经注册的邮箱
-      .get('.form-control').eq(0).type('yuanyuan.shao@txxxxxs.com')
+      .get('.form-control').eq(0).type('xxx@thougtworks.com')
       .get('.invalid-feedback').eq(1).should('contain','请输入密码')
 
   })
@@ -405,12 +496,13 @@ describe("登录页面UI" ,() => {
   it("登录页面，check用户已经注册但是没有激活的场景，UI",() => {
 
     cy.get('input')
-      .get('.form-control').eq(0).type('xxxxxq.com')
+      .get('.form-control').eq(0).type('test25@qq.com')
     cy.get('input') .get('.form-control').eq(1).type('1234ABcd..')
     cy.get('.btn-lg').click()
     cy.get('.confirm-info-modal-content')
-      .should('contain','该邮箱已注册，请前往激活')
-      .should('contain','我们已将验证电子邮件发送至您的电子邮箱地址，请单击电子邮件中的链接以激活您的账号。')
+      .should('contain','该邮箱已注册，请在7天内前往激活')
+      .should('contain','若链接已失效，可点击下方的「重新发送邮件」按钮，我们将重新向您的电子邮件地址发送一封验证邮件，请单击电子邮件中的链接以激活您的账号。')
+      .should('have.attr','type','resend')
     cy.get('.confirm-info-modal-content').find('.btn')
 
   })
@@ -425,7 +517,7 @@ describe("登录页面UI" ,() => {
       .clear()
       .get('.form-control').eq(0).type('test')
       .get('.invalid-feedback').eq(0).should('contain','请输入格式正确的邮箱地址')
-      .get('.form-control').eq(0).type('yuanyuan.shao@txxxxxs.com')
+      .get('.form-control').eq(0).type('xxx@thougtworks.com')
       .get('.invalid-feedback').eq(1).should('contain','请输入密码')
 
   })
@@ -488,18 +580,98 @@ describe("登录页面UI" ,() => {
 
 
 
-
-
-
-
    //cy.contains('cypress').click()
      //cy.request('POST', '/api/tokens', {
-      //body: '{"email":"y1204xxxxx3.com","password":"1234ABcd.."}'
+      //body: '{"email":"y1204140217@163.com","password":"1234ABcd.."}'
     //}).its('body')
       // .as('currentUser')
 
 */
 
+
+})
+
+describe("登录后的页面UI" ,() => {
+  function project_name() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < 10; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+  }
+
+   var project_tag='xxxx_tag'
+
+   it("登录后检查project页面",() => {
+      cy.visit('https://qa.xxxx.hello-xxx.com/zh-CN/')
+        .contains(' 联系我们')
+      cy.contains('登录').click()
+      //cy.get('.form-group')
+      cy.get('.form-group').eq(0)
+        .type('y1204140217@163.com')
+      cy.get('.has-suffix-icon')
+        .type("1234ABcd..")
+      cy.get('.btn-lg').click()
+
+
+
+      cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .should('have.length','7')
+        .eq(0).should('contain','项目')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(1).should('contain','社区')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(2).should('contain','全部')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(3).should('contain','精华工作坊')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(4).should('contain','创新0-1')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(5).should('contain','流程优化')
+     cy.get('.row').get('.col').get('.ng-untouched>ul').get('li')
+        .eq(6).should('contain','其他')
+//检查搜索功能
+     cy.get('.align-items-center').find('.bd-icon-content').click()
+       .get('.form-control')
+       .should('have.attr','placeholder','请输入项目名称')
+       .focus()
+       .type('test')
+
+
+
+    cy.get('.project-dropdown').get('.dropdown-toggle').eq(2).click()
+     cy.get('.dropdown-menu>li')
+       .should('have.length','3')
+
+     cy.get('.project-dropdown').get('.dropdown-toggle').eq(1).click()
+
+
+
+     })
+
+
+  it("登录后创建project",() => {
+      cy.visit('https://qa.xxxx.hello-xxx.com/zh-CN/')
+        .contains(' 联系我们')
+      cy.contains('登录').click()
+      //cy.get('.form-group')
+      cy.get('.form-group').eq(0)
+        .type('y1204140217@163.com')
+      cy.get('.has-suffix-icon')
+        .type("1234ABcd..")
+      cy.get('.btn-lg').click()
+
+      cy.get('.add-project').eq(0).dblclick()
+        .click()
+      cy.get('#_bee-name').eq(0)
+        .type(project_name())
+      cy.get('#_bee-tag')
+        .type(project_tag)
+      cy.get('.btn-primary').click()
+
+     })
 
 })
 
